@@ -51,7 +51,7 @@ class _CaldividendpageState extends State<Caldividendpage> {
 
   void _calculateAmounts() {
     double amount = double.tryParse(_amountController.text) ?? 0.0;
-    const double baseAmount = 1000000;
+    const double baseAmount = 1200000;
 
     setState(() {
       _memberAmount = amount * 0.7;
