@@ -12,6 +12,7 @@ import 'Profile/ProfilePage.dart';
 import 'Deposit/DepositPage.dart';
 import 'Data_Loan/Data_Loan.dart';
 import 'Data_Savings/Data_Savings.dart';
+import 'Login/PinPage.dart';
 
 class AppRoute{
   static const home = 'home';
@@ -26,6 +27,7 @@ class AppRoute{
   static const Status = 'Status';
   static const Data_Loan = 'Data_Loan';
   static const Data_Savings = 'Data_Savings';
+  static const PinPage = 'PinPage';
 
 
   static get all => <String, WidgetBuilder>{
@@ -39,7 +41,8 @@ class AppRoute{
     Deposit : (context) => const Depositpage(),
     Percen : (context) => const Percenpage(),
     Status : (context) => const Slippage(),
-    Data_Loan: (context) => const LoanScreen(),  // ใช้ constructor ที่ถูกต้อง
+    Data_Loan: (context) => const LoanScreen(),
     Data_Savings: (context) => const SavingScreen(),
+    PinPage: (context) => PinEntryPage(),
   };
 }

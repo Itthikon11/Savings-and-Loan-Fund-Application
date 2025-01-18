@@ -1,5 +1,8 @@
-import 'package:appproject/src/page/routes.dart';
+import 'dart:async';
+import 'package:appproject/src/page/Login/PinPage.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -9,152 +12,354 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _idUser = TextEditingController();
+  final TextEditingController _numberUser = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
 
-  final _idUser = TextEditingController();
-  final _idCard = TextEditingController();
-  String? _idUserError;
-  String? _idCardError;
+  bool _isButtonDisabled = false;
+  bool _isLoginEnabled = false;
+  int _countdown = 30;
+  Timer? _timer;
 
-  bool _isFormValid(){
-    return _idUser.text.isNotEmpty &&
-        _idCard.text.isNotEmpty &&
-        _idUserError == null &&
-        _idCardError == null;
+  bool _isUserValid = true;
+
+  void _startCountdown() {
+    setState(() {
+      _isButtonDisabled = true;
+      _countdown = 30;
+    });
+
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_countdown > 0) {
+          _countdown--;
+        } else {
+          _isButtonDisabled = false;
+          timer.cancel();
+        }
+      });
+    });
   }
 
-  bool _isNumeric(String value) {
-    return double.tryParse(value) != null;
+  void _checkUser() {
+    final String idUser = _idUser.text;
+
+    if (idUser == "001") {
+      setState(() {
+        _isUserValid = true;
+      });
+    } else {
+      setState(() {
+        _isUserValid = false;
+      });
+    }
+  }
+
+  void _validateForm() {
+    setState(() {
+      _isLoginEnabled = _idUser.text.isNotEmpty &&
+          _numberUser.text.isNotEmpty &&
+          _otpController.text.isNotEmpty;
+    });
+  }
+
+  Future<void> _checkUserAndSavePhone() async {
+    final idUser = _idUser.text;
+    final phoneNumber = _numberUser.text;
+    final otp = _otpController.text;
+
+    if (idUser.isEmpty || phoneNumber.isEmpty || otp.isEmpty) {
+      setState(() {
+        _isUserValid = false;
+      });
+      return;
+    }
+
+    try {
+      final response = await http
+          .post(
+        Uri.parse('http://192.168.1.40:3000/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_user': _idUser.text,
+          'phone_number': _numberUser.text,
+          'otp': _otpController.text,
+        }),
+      )
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        throw Exception('คำขอหมดเวลา');
+      });
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PinEntryPage()),
+        );
+      } else {
+        _showErrorDialog('เกิดข้อผิดพลาด: ${response.body}');
+      }
+    } catch (e) {
+      _showErrorDialog('เกิดข้อผิดพลาด: $e');
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('ข้อผิดพลาด'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('ตกลง'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _idUser.dispose();
+    _numberUser.dispose();
+    _otpController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: double.infinity,
         color: Colors.green[400],
-        child: Container(
-            padding: const EdgeInsets.all(42),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset("assets/imgs/logo.png",width: 250,),
-                SizedBox(height: 20,),
-                ..._BuildTextFields(),
-                SizedBox(height: 32,),
-                ..._BuildButton(),
-              ],
-            )
+        child: Center(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 350,
+                height: 450,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                      offset: Offset(2, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 40),
+                    ..._buildMemberFields(),
+                    SizedBox(height: 30),
+                    ..._buildNumberFields(),
+                    SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: _isLoginEnabled
+                          ? () {
+                              _checkUserAndSavePhone();
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _isLoginEnabled ? Colors.blueAccent : Colors.grey,
+                        foregroundColor: Colors.white,
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                      ),
+                      child: Text(
+                        "เข้าสู่ระบบ",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: -80,
+                left: 100,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 50,
+                        spreadRadius: 2,
+                        offset: Offset(2, 5),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      "assets/imgs/logo.png",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _loginClick() {
-    print("ID User => ${_idUser.text} ID Card => ${_idCard.text}");
-    Navigator.pushReplacementNamed(context, AppRoute.home);
-  }
-
-  List<Widget> _BuildTextFields() {
+  List<Widget> _buildMemberFields() {
     return [
-    TextField(
-      controller: _idUser,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        labelText: "รหัสสมาชิก",
-        labelStyle: TextStyle(
-            color: Colors.white
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(
-            color: Colors.white,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(
-            color: Colors.blue,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(
-            color: Colors.red,
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(
-            color: Colors.red,
-          ),
-        ),
-        errorText: _idUserError,
-      ),
-      onChanged: (value) {
-        setState(() {
-          _idUserError = _isNumeric(value) ? null : "กรุณาใส่ตัวเลขเท่านั้น";
-        });
-      },
-    ),
-      SizedBox(height: 20),
-      TextField(
-        controller: _idCard,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: "รหัส 4 ตัวท้ายบัตรประชาชน",
-          labelStyle: TextStyle(
-            color: Colors.white
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50),
-            borderSide: BorderSide(
-              color: Colors.white,
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(2, 4),
             ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50),
-            borderSide: BorderSide(
-              color: Colors.blue,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(50),
-            borderSide: BorderSide(
-              color: Colors.red,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide(
-              color: Colors.red,
-            ),
-          ),
-          errorText: _idCardError,
+          ],
         ),
-        onChanged: (value) {
-          setState(() {
-            if (!_isNumeric(value)) {
-              _idCardError = "กรุณาใส่ตัวเลขเท่านั้น";
-            } else if (value.length != 4) {
-              _idCardError = "กรุณาใส่ 4 ตัว";
-            } else {
-              _idCardError = null;
-            }
-          });
-        },
+        child: TextField(
+          controller: _idUser,
+          keyboardType: TextInputType.number,
+          onChanged: (value) {
+            _validateForm();
+            _checkUser();
+          },
+          decoration: InputDecoration(
+            labelText: "รหัสสมาชิก",
+            labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: _isUserValid ? Colors.green : Colors.red,
+              ),
+            ),
+            prefixIcon: Icon(
+              Icons.person,
+              color: _isUserValid ? Colors.green : Colors.red,
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          ),
+        ),
       ),
     ];
   }
 
-  _BuildButton() {
-    return[
-      ElevatedButton(onPressed: _isFormValid() ? _loginClick : null, child: Text("Login")),
+  List<Widget> _buildNumberFields() {
+    return [
+      Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(2, 4),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _numberUser,
+                keyboardType: TextInputType.number,
+                onChanged: (value) => _validateForm(),
+                decoration: InputDecoration(
+                  labelText: "เบอร์โทร",
+                  labelStyle:
+                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon:
+                      Icon(Icons.phone_iphone, color: Colors.blueAccent),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 10),
+          ElevatedButton(
+            onPressed: _isButtonDisabled
+                ? null
+                : () {
+                    print("ส่ง OTP ไปที่เบอร์: ${_numberUser.text}");
+                    _startCountdown();
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  _isButtonDisabled ? Colors.grey : Colors.blueAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+            ),
+            child: _isButtonDisabled
+                ? Text("$_countdown วินาที", style: TextStyle(fontSize: 14))
+                : Text("ส่ง OTP",
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+      SizedBox(height: 20),
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(2, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _otpController,
+          keyboardType: TextInputType.number,
+          onChanged: (value) => _validateForm(),
+          decoration: InputDecoration(
+            labelText: "รหัส OTP",
+            labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            prefixIcon: Icon(Icons.lock, color: Colors.redAccent),
+            contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          ),
+        ),
+      ),
     ];
   }
 }
