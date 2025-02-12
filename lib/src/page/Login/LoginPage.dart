@@ -54,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://172.18.138.185:3001/users/$idUser'),
+        Uri.parse('http://192.168.1.40:3001/users/$idUser'),
       );
 
       if (response.statusCode == 200) {
@@ -104,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final response = await http
           .post(
-        Uri.parse('http://172.18.138.185:3001/login'),
+        Uri.parse('http://192.168.1.40:3001/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'id_user': idUser,

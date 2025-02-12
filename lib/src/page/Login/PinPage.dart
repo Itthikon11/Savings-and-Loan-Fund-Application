@@ -33,7 +33,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
   Future<void> _checkExistingPin() async {
     try {
       final response = await http.get(
-        Uri.parse('http://172.18.138.185:3001/get_pin/${widget.idUser}'),
+        Uri.parse('http://192.168.1.40:3001/get_pin/${widget.idUser}'),
       );
 
       if (response.statusCode == 200) {
@@ -114,7 +114,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://172.18.138.185:3001/save_pin'),
+        Uri.parse('http://192.168.1.40:3001/save_pin'),
         headers: {'Content-Type': 'application/json'},
         body: requestBody,
       );
@@ -310,7 +310,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
 
               try {
                 final response = await http.post(
-                  Uri.parse('http://172.18.138.185:3001/check_phone'),
+                  Uri.parse('http://192.168.1.40:3001/check_phone'),
                   headers: {'Content-Type': 'application/json'},
                   body: jsonEncode({'phone_number': phone, 'otp': otp}),
                 );

@@ -1,33 +1,73 @@
+import 'package:appproject/src/page/Data/DetailsSlipPage.dart';
+import 'package:appproject/src/page/Savings/DetailsSaving.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class Slippage extends StatefulWidget {
   const Slippage({super.key});
 
   @override
-  State<Slippage> createState() => _LoanDocumentsPageState();
+  State<Slippage> createState() => _SlippageState();
 }
 
-class _LoanDocumentsPageState extends State<Slippage> {
+class _SlippageState extends State<Slippage> {
   DateTime selectedDate = DateTime.now();
+  String searchQuery = "";
+  List<Map<String, dynamic>> slipData = [];
+  bool isLoading = true;
 
-  // Mock Data
-  final List<Map<String, dynamic>> mockData = [
-    {"name": "อิทธิกร สกุลแก้ว", "time": "09:30น.", "status": "อนุมัติ", "document": "กู้ยืม 1"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "10:00น.", "status": "รอดำเนินการ", "document": "กู้ยืม 2"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "14:30น.", "status": "ไม่อนุมัติ", "document": "กู้ยืม 3"},
-    {"name": "ธนวัฒน์ หนองงู", "time": "16:00น.", "status": "อนุมัติ", "document": "กู้ยืม 4"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "10:00น.", "status": "รอดำเนินการ", "document": "กู้ยืม 5"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "14:30น.", "status": "ไม่อนุมัติ", "document": "กู้ยืม 6"},
-    {"name": "ธนวัฒน์ หนองงู", "time": "16:00น.", "status": "อนุมัติ", "document": "กู้ยืม 7"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "10:00น.", "status": "รอดำเนินการ", "document": "กู้ยืม 8"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "14:30น.", "status": "ไม่อนุมัติ", "document": "กู้ยืม 9"},
-    {"name": "ธนวัฒน์ หนองงู", "time": "16:00น.", "status": "อนุมัติ", "document": "กู้ยืม 10"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "10:00น.", "status": "รอดำเนินการ", "document": "กู้ยืม 11"},
-    {"name": "อิทธิกร สกุลแก้ว", "time": "14:30น.", "status": "ไม่อนุมัติ", "document": "กู้ยืม 12"},
-    {"name": "ธนวัฒน์ หนองงู", "time": "16:00น.", "status": "อนุมัติ", "document": "กู้ยืม 13"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchSlipData();
+  }
 
-  // ฟังก์ชันเลือกวันที่
+  Future<void> fetchSlipData() async {
+    String formattedDate = "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+    String apiUrl = "http://192.168.1.40:3001/getslips?date=$formattedDate";
+    if (searchQuery.isNotEmpty) {
+      apiUrl += "&search=$searchQuery";
+    }
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        setState(() {
+          slipData = jsonData.map((data) => {
+            "id_slip": data["id_slip"],
+            "name": "${data["first_name"]} ${data["last_name"]}",
+            "date": data["slip_date"].split("T")[0],
+            "time": data["slip_time"].split(".")[0],
+            "status": _getStatusText(data["id_status"]),
+          }).toList();
+          isLoading = false;
+        });
+      } else {
+        throw Exception("Failed to load data");
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print("Error fetching data: $e");
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case "S001":
+        return "อนุมัติ";
+      case "S002":
+        return "รอดำเนินการ";
+      case "S003":
+        return "ไม่อนุมัติ";
+      default:
+        return "ไม่ทราบสถานะ";
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -47,6 +87,7 @@ class _LoanDocumentsPageState extends State<Slippage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
+        fetchSlipData();
       });
     }
   }
@@ -62,14 +103,20 @@ class _LoanDocumentsPageState extends State<Slippage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // ค้นหา
+            // ช่องค้นหา
             Card(
               elevation: 5,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: TextField(
-                  decoration: InputDecoration(
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                      fetchSlipData();
+                    });
+                  },
+                  decoration: const InputDecoration(
                     hintText: "ค้นหา",
                     prefixIcon: Icon(Icons.search, color: Colors.black),
                     border: InputBorder.none,
@@ -79,128 +126,68 @@ class _LoanDocumentsPageState extends State<Slippage> {
             ),
             const SizedBox(height: 16),
 
-            // เลือกวันที่
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("เลือกวันที่", style: TextStyle(fontWeight: FontWeight.bold)),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: () => _selectDate(context),
-                  icon: const Icon(Icons.calendar_today, color: Colors.white),
-                  label: Text(
-                    "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
             // หัวตาราง
             Container(
               decoration: BoxDecoration(
                 color: Colors.green[300],
                 borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               child: const Row(
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      "ชื่อ",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      "เวลา",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      "สถานะ",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2, // ช่องเอกสารมีพื้นที่ที่เหมาะสม
-                    child: Text(
-                      "สลิป",
-                      textAlign: TextAlign.right, // ชิดขวา
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                    ),
-                  ),
+                  Expanded(flex: 3, child: Text("ชื่อ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white))),
+                  Expanded(flex: 2, child: Text("วัน", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white))),
+                  Expanded(flex: 2, child: Text("เวลา", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white))),
+                  Expanded(flex: 2, child: Text("สถานะ", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white))),
                 ],
               ),
             ),
             const SizedBox(height: 8),
 
-            // ข้อมูลตาราง
+            // แสดงข้อมูลตามช่องที่กำหนด
             Expanded(
-              child: ListView.builder(
-                itemCount: mockData.length,
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                itemCount: slipData.length,
                 itemBuilder: (context, index) {
-                  final data = mockData[index];
+                  final data = slipData[index];
                   return Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(data["name"], style: const TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(data["time"]),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            data["status"],
-                            style: TextStyle(
-                              color: data["status"] == "อนุมัติ"
-                                  ? Colors.green
-                                  : (data["status"] == "ไม่อนุมัติ" ? Colors.red : Colors.orange),
-                              fontWeight: FontWeight.bold,
+                    child: InkWell(
+                      onTap: () {
+                        // แก้ไขส่วนนี้เพื่อส่ง id_slip ไปยังหน้ารายละเอียด
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailsSlipPage(idSlip: data["id_slip"]), // ต้องส่ง id_slip จาก data
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(flex: 3, child: Text(data["name"], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                          Expanded(flex: 2, child: Text(data["date"], textAlign: TextAlign.center, style: const TextStyle(fontSize: 14))),
+                          Expanded(flex: 2, child: Text(data["time"], textAlign: TextAlign.center, style: const TextStyle(fontSize: 14))),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              data["status"],
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: data["status"] == "อนุมัติ" ? Colors.green : (data["status"] == "รอดำเนินการ" ? Colors.orange : Colors.red),
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: IconButton(
-                            alignment: Alignment.centerLeft,
-                            icon: const Icon(Icons.search, color: Colors.orange),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("ดูเอกสารกู้ยืม: ${data['document']}"),
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },

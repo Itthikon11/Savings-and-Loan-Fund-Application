@@ -60,7 +60,7 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://172.18.138.185:3001/reset_pin'),
+        Uri.parse('http://192.168.1.40:3001/reset_pin'),
         headers: {'Content-Type': 'application/json'},
         body: requestBody,
       );

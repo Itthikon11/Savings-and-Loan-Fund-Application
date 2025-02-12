@@ -82,7 +82,7 @@ class _DepositpageState extends State<Depositpage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://172.18.138.185:3001/users/$idUser'),
+        Uri.parse('http://192.168.1.40:3001/users/$idUser'),
       );
 
       setState(() {
@@ -104,7 +104,7 @@ class _DepositpageState extends State<Depositpage> {
   }
 
   Future<void> saveDeposit(String idUser, List<Map<String, dynamic>> depositData) async {
-    final url = Uri.parse('http://172.18.138.185:3001/deposit');
+    final url = Uri.parse('http://192.168.1.40:3001/deposit');
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},

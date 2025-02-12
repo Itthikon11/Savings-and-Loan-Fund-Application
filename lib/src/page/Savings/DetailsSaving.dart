@@ -15,7 +15,7 @@ class _DetailssavingState extends State<Detailssaving> {
   List<Map<String, dynamic>> savingsData = [];
   bool isLoading = true;
   String? errorMessage;
-  bool _isDisposed = false; // ✅ ใช้ตรวจสอบว่า Widget ถูกปิดไปหรือยัง
+  bool _isDisposed = false;
 
   // รายชื่อเดือน 1-12 (ภาษาไทย)
   final List<String> monthNames = [
@@ -37,7 +37,7 @@ class _DetailssavingState extends State<Detailssaving> {
   }
 
   Future<void> fetchSavingsData() async {
-    final String apiUrl = "http://172.18.138.185:3001/deposit/DepositMonth";
+    final String apiUrl = "http://192.168.1.40:3001/deposit/DepositMonth";
 
     try {
       final response = await http.post(

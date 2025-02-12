@@ -42,7 +42,7 @@ class _SavingspageState extends State<Savingspage> {
 
     setState(() => _isLoading = true);
 
-    final String apiUrl = "http://172.18.138.185:3001/deposit/${widget.idUser}";
+    final String apiUrl = "http://192.168.1.40:3001/deposit/${widget.idUser}";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
