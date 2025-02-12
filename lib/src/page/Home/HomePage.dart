@@ -4,17 +4,20 @@ import 'package:appproject/src/page/Data/SlipPage.dart';
 import 'package:appproject/src/page/Data/LoanDocumentsPage.dart';
 import 'package:appproject/src/page/Profile/ProfilePage.dart';
 import 'package:appproject/src/page/Data_Loan/Data_Loan.dart';
-import 'package:appproject/src/page/Data_Savings/Data_Savings.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import '../Savings/SavingsPage.dart';
 import '../routes.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String idUser;
+
+  const HomePage({super.key, required this.idUser});
 
   @override
   State<HomePage> createState() => _HomepageState();
 }
+
 
 class _HomepageState extends State<HomePage> {
   int _selectedIndex = 0;
@@ -25,9 +28,19 @@ class _HomepageState extends State<HomePage> {
     });
 
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, AppRoute.home);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(idUser: widget.idUser),
+        ),
+      );
     } else if (index == 1) {
-      Navigator.pushReplacementNamed(context, AppRoute.savings);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Savingspage(idUser: widget.idUser),
+        ),
+      );
     } else if (index == 2) {
       Navigator.pushReplacementNamed(context, AppRoute.loan);
     }

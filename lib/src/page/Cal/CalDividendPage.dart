@@ -18,26 +18,6 @@ class _CaldividendpageState extends State<Caldividendpage> {
     setState(() {
       _selectedIndex = index;
     });
-
-    if (index == 0) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-            (Route<dynamic> route) => false,
-      );
-    } else if (index == 1) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => Savingspage()),
-            (Route<dynamic> route) => false,
-      );
-    } else if (index == 2) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => Loanpage()),
-            (Route<dynamic> route) => false,
-      );
-    }
   }
 
   final TextEditingController _amountController = TextEditingController();
@@ -122,7 +102,6 @@ class _CaldividendpageState extends State<Caldividendpage> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildMenuBar(),
     );
   }
 
@@ -156,37 +135,6 @@ class _CaldividendpageState extends State<Caldividendpage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildMenuBar() {
-    return Container(
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: GNav(
-          activeColor: Colors.white,
-          tabBackgroundColor: Colors.green.shade300,
-          gap: 10,
-          padding: EdgeInsets.all(15),
-          selectedIndex: _selectedIndex,
-          onTabChange: _onTabChange,
-          tabs: const [
-            GButton(
-              icon: Icons.home,
-              text: 'หน้าหลัก',
-            ),
-            GButton(
-              icon: Icons.savings,
-              text: 'เงินฝาก',
-            ),
-            GButton(
-              icon: Icons.account_balance,
-              text: 'เงินกู้',
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

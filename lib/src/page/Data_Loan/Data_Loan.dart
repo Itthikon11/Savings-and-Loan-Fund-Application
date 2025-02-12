@@ -133,7 +133,7 @@ class _LoanScreenState extends State<LoanScreen> {
                 _buildFooterButton('ย้อนกลับ', Colors.red, Icons.arrow_back, () {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
+                    MaterialPageRoute(builder: (context) => const HomePage(idUser: '')),
                         (route) => false, // ลบ stack หน้าเก่า
                   );
                 }),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'Data/PercenPage.dart';
 import 'Data/SlipPage.dart';
 import 'Login/LoginPage.dart';
@@ -13,6 +12,8 @@ import 'Deposit/DepositPage.dart';
 import 'Data_Loan/Data_Loan.dart';
 import 'Data_Savings/Data_Savings.dart';
 import 'Login/PinPage.dart';
+import 'Login/ForgotPinPage.dart';
+import 'Savings/DetailsSaving.dart';
 
 class AppRoute{
   static const home = 'home';
@@ -28,13 +29,15 @@ class AppRoute{
   static const Data_Loan = 'Data_Loan';
   static const Data_Savings = 'Data_Savings';
   static const PinPage = 'PinPage';
+  static const ForgotPin = 'ForgotPin';
+  static const DetailsSaving = 'DetailsSaving';
 
 
   static get all => <String, WidgetBuilder>{
     login : (context) => const LoginPage(),
-    home : (context) => const HomePage(),
+    home : (context) => const HomePage(idUser: ''),
     loan : (context) => const Loanpage(),
-    savings : (context) => const Savingspage(),
+    'savings' : (context) => const Savingspage(idUser: ''),
     CalDividend : (context) => const Caldividendpage(),
     CalLoan : (context) => const Calloanpage(),
     Profile : (context) => const Profilepage(),
@@ -43,6 +46,8 @@ class AppRoute{
     Status : (context) => const Slippage(),
     Data_Loan: (context) => const LoanScreen(),
     Data_Savings: (context) => const SavingScreen(),
-    PinPage: (context) => PinEntryPage(),
+    'PinPage': (context) => PinEntryPage(idUser: ''),
+    'ForgotPin': (context) => ForgotPinPage(idUser: ''),
+    'DetailsSaving': (context) => const Detailssaving(idDepositAm: ''),
   };
 }
