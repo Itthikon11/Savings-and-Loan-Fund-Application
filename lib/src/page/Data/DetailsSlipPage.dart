@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:ui';
 
 class DetailsSlipPage extends StatefulWidget {
   final String idSlip;
@@ -16,6 +15,7 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
   bool isLoading = true;
   bool hasError = false;
   Map<String, dynamic> slipData = {};
+  String? selectedStatus;
 
   @override
   void initState() {
@@ -25,11 +25,13 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
 
   Future<void> fetchSlipDetails() async {
     try {
-      final response = await http.get(Uri.parse(
-          'http://192.168.1.40:3001/getslipdetails?id_slip=${widget.idSlip}'));
+      final response = await http.get(
+          Uri.parse('http://192.168.1.40:3001/getslipdetails?id_slip=${widget.idSlip}'));
+
       if (response.statusCode == 200) {
         setState(() {
           slipData = json.decode(response.body);
+          selectedStatus = slipData["id_status"]?.toString();
           isLoading = false;
         });
       } else {
@@ -44,7 +46,40 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
     }
   }
 
-  String _getStatusText(String status) {
+  Future<void> _updateStatus() async {
+    if (selectedStatus == null) return;
+
+    try {
+      final response = await http.put(
+        Uri.parse("http://192.168.1.40:3001/updateSlipStatus/${widget.idSlip}"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"id_status": selectedStatus}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("อัปเดตสถานะสำเร็จ"),
+          backgroundColor: Colors.green,
+        ));
+        setState(() {
+          slipData["id_status"] = selectedStatus;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("เกิดข้อผิดพลาดในการอัปเดตสถานะ"),
+          backgroundColor: Colors.redAccent,
+        ));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("เกิดข้อผิดพลาด: $e"),
+        backgroundColor: Colors.redAccent,
+      ));
+    }
+  }
+
+  String _getStatusText(String? status) {
+    if (status == null) return "ไม่ทราบสถานะ";
     switch (status) {
       case "S001":
         return "อนุมัติแล้ว";
@@ -57,7 +92,8 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
     }
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String? status) {
+    if (status == null) return Colors.grey;
     switch (status) {
       case "S001":
         return Colors.green;
@@ -70,13 +106,30 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
     }
   }
 
-  Color _getIconColor(IconData icon) {
-    if (icon == Icons.person) return Colors.blue;
-    if (icon == Icons.calendar_today) return Colors.purple;
-    if (icon == Icons.confirmation_number) return Colors.teal;
-    if (icon == Icons.money) return Colors.amber;
-    if (icon == Icons.check_circle) return Colors.green;
-    return Colors.black;
+  Widget _buildInfoRow(IconData icon, String label, String value, {bool isStatus = false, Color? statusColor, Color? iconColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: iconColor ?? (isStatus ? (statusColor ?? Colors.black) : Colors.black), // ใช้ iconColor ถ้ามี
+            size: 28, // ขนาดใหญ่ขึ้นเล็กน้อยเพื่อให้เห็นชัด
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              "$label: $value",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: isStatus ? FontWeight.bold : FontWeight.normal,
+                color: isStatus ? statusColor ?? Colors.black : Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -85,7 +138,6 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
       appBar: AppBar(
         title: const Text("รายละเอียดสลิปเงินฝาก"),
         backgroundColor: Colors.green[700],
-        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -109,50 +161,69 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow(Icons.person, "ชื่อ", "${slipData["first_name"]} ${slipData["last_name"]}"),
-                  _buildInfoRow(Icons.calendar_today, "วันที่", DateTime.parse(slipData["date"]).toLocal().toString().split('.')[0]),
-                  _buildInfoRow(Icons.confirmation_number, "หมายเลขสลิป", slipData["slip_number"].toString()),
-                  _buildInfoRow(Icons.money, "จำนวนเงิน", "${slipData["amount_slip"].toString()} บาท"),
+                  _buildInfoRow(
+                    Icons.person,
+                    "ชื่อ",
+                    "${slipData["first_name"]} ${slipData["last_name"]}",
+                    iconColor: Colors.blue,
+                  ),
+                  _buildInfoRow(
+                    Icons.calendar_today,
+                    "วันที่",
+                    DateTime.parse(slipData["date"]).toLocal().toString().split('.')[0],
+                    iconColor: Colors.purple,
+                  ),
+                  _buildInfoRow(
+                    Icons.confirmation_number,
+                    "หมายเลขสลิป",
+                    slipData["slip_number"].toString(),
+                    iconColor: Colors.green,
+                  ),
+                  _buildInfoRow(
+                    Icons.money,
+                    "จำนวนเงิน",
+                    "${slipData["amount_slip"].toString()} บาท",
+                    iconColor: Colors.orange,
+                  ),
 
+                  SizedBox(height: 20),
+
+                  // 🖼 แสดงรูปภาพสลิป
                   Center(
                     child: GestureDetector(
                       onTap: () {
                         showDialog(
                           context: context,
                           builder: (context) => Dialog(
-                            backgroundColor: Colors.transparent, // พื้นหลังโปร่งใส
+                            backgroundColor: Colors.transparent,
                             child: Container(
                               padding: EdgeInsets.all(10),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   ClipRRect(
-                                    borderRadius: BorderRadius.circular(15), // ทำให้ภาพโค้งมน
+                                    borderRadius: BorderRadius.circular(15),
                                     child: Image.asset(
                                       'assets/imgs/slip.png',
                                       fit: BoxFit.contain,
                                     ),
                                   ),
                                   SizedBox(height: 15),
-
-                                  // ปุ่มปิดที่ตกแต่งใหม่
                                   ElevatedButton(
                                     onPressed: () => Navigator.of(context).pop(),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.redAccent, // สีแดงเข้ม
-                                      foregroundColor: Colors.white, // สีตัวอักษร
+                                      backgroundColor: Colors.redAccent,
+                                      foregroundColor: Colors.white,
                                       padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10), // ขอบมน
-                                      ),
-                                      elevation: 5, // เพิ่มเงาให้ปุ่มดูเด่น
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      elevation: 5,
                                     ),
                                     child: Text(
                                       "ปิด",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2, // เพิ่มระยะห่างตัวอักษร
+                                        letterSpacing: 1.2,
                                       ),
                                     ),
                                   ),
@@ -162,64 +233,68 @@ class _DetailsSlipPageState extends State<DetailsSlipPage> {
                           ),
                         );
                       },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                          color: Colors.white,
-                        ),
-                        padding: EdgeInsets.all(5),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset(
-                            'assets/imgs/slip.png',
-                            width: 400,
-                            height: 400,
-                            fit: BoxFit.cover, // ทำให้รูปพอดีกับกรอบ
-                          ),
-                        ),
+                      child: Image.asset(
+                        'assets/imgs/slip.png',
+                        width: 250,
+                        height: 250,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
 
-                  _buildInfoRow(Icons.check_circle, "สถานะ", _getStatusText(slipData["id_status"].toString()),
-                      isStatus: true, statusColor: _getStatusColor(slipData["id_status"].toString())),
+                  SizedBox(height: 20),
+
+                  // 📌 สถานะปัจจุบัน
+                  _buildInfoRow(
+                    Icons.check_circle,
+                    "สถานะปัจจุบัน",
+                    _getStatusText(slipData["id_status"]?.toString()),
+                    iconColor: _getStatusColor(slipData["id_status"]?.toString()),
+                    isStatus: true,
+                    statusColor: _getStatusColor(slipData["id_status"]?.toString()),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  // 📌 เปลี่ยนสถานะ
+                  Text("เปลี่ยนสถานะ", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: selectedStatus,
+                    items: [
+                      DropdownMenuItem(value: "S001", child: Text("อนุมัติแล้ว")),
+                      DropdownMenuItem(value: "S002", child: Text("รอดำเนินการ")),
+                      DropdownMenuItem(value: "S003", child: Text("ไม่ผ่านอนุมัติ")),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedStatus = value!;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  // 📌 ปุ่มอัปเดตสถานะ
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _updateStatus,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[700], // 🟦 สีน้ำเงินเข้ม
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: Text("อัปเดตสถานะ"),
+                    ),
+                  ),
                 ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value, {bool isStatus = false, Color? statusColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: isStatus ? (statusColor ?? Colors.black) : _getIconColor(icon),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              "$label: $value",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isStatus ? FontWeight.bold : FontWeight.normal,
-                color: isStatus ? statusColor ?? Colors.black : Colors.black,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -47,19 +47,18 @@ class _SlippageState extends State<Slippage> {
           isLoading = false;
         });
 
-        print("📝 Loaded Data: $slipData");
+        print("Loaded Data: $slipData");
       } else {
         throw Exception("Failed to load data");
       }
     } catch (e) {
-      print("🚨 Error fetching data: $e");
+      print("Error fetching data: $e");
       setState(() {
         isLoading = false;
       });
     }
   }
 
-  /// 🔍 ค้นหาสลิปตามชื่อจาก API `/searchslips`
   Future<void> searchSlips(String query) async {
     if (query.isEmpty) {
       fetchAllSlips();
@@ -90,12 +89,12 @@ class _SlippageState extends State<Slippage> {
           isLoading = false;
         });
 
-        print("📝 Search Results: $slipData");
+        print("Search Results: $slipData");
       } else {
         throw Exception("Failed to search data");
       }
     } catch (e) {
-      print("🚨 Error searching data: $e");
+      print("Error searching data: $e");
       setState(() {
         isLoading = false;
       });
@@ -126,7 +125,6 @@ class _SlippageState extends State<Slippage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 🔍 ช่องค้นหา
             Card(
               elevation: 5,
               shape: RoundedRectangleBorder(
@@ -138,7 +136,7 @@ class _SlippageState extends State<Slippage> {
                     setState(() {
                       searchQuery = value;
                     });
-                    searchSlips(value); // ค้นหาข้อมูล
+                    searchSlips(value);
                   },
                   decoration: const InputDecoration(
                     hintText: "ค้นหา",
@@ -149,8 +147,6 @@ class _SlippageState extends State<Slippage> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // 🟢 หัวตาราง
             Container(
               decoration: BoxDecoration(
                 color: Colors.green[300],
@@ -195,8 +191,6 @@ class _SlippageState extends State<Slippage> {
               ),
             ),
             const SizedBox(height: 8),
-
-            // 📜 แสดงข้อมูล
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -211,7 +205,7 @@ class _SlippageState extends State<Slippage> {
                   final data = slipData[index];
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 8),
+                        vertical: 15, horizontal: 10),
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
@@ -222,12 +216,15 @@ class _SlippageState extends State<Slippage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DetailsSlipPage(
-                                idSlip: data["id_slip"]),
+                            builder: (context) => DetailsSlipPage(idSlip: data["id_slip"]),
                           ),
-                        );
+                        ).then((_) {
+                          setState(() {
+                            fetchAllSlips();
+                          });
+                        });
                       },
-                      child: Row(
+                        child: Row(
                         children: [
                           Expanded(
                               flex: 3,

@@ -1,8 +1,10 @@
+import 'package:appproject/src/page/Home/HomePage.dart';
 import 'package:flutter/material.dart';
 import 'package:appproject/src/page/Data_Loan/Data_Loan.dart';
 
 class SavingScreen extends StatefulWidget {
-  const SavingScreen({Key? key}) : super(key: key);
+  final String idUser;
+  const SavingScreen({Key? key, required this.idUser}) : super(key: key);
 
   @override
   State<SavingScreen> createState() => _SavingScreenState(); // แก้ไขชื่อให้ตรงกับคลาส
@@ -128,7 +130,11 @@ class _SavingScreenState extends State<SavingScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildFooterButton('ย้อนกลับ', Colors.red, Icons.arrow_back, () {
-                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage(idUser: widget.idUser)),
+                        (Route<dynamic> route) => false,
+                  );
                 }),
                 _buildFooterButton('เพิ่มข้อมูล', Colors.green, Icons.add, () {
                   // Add functionality for เพิ่มข้อมูล
@@ -150,13 +156,13 @@ class _SavingScreenState extends State<SavingScreen> {
               isLoanSelected = false; // เลือก "เงินออม"
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SavingScreen()), // ไปหน้า SavingScreen
+                MaterialPageRoute(builder: (context) => SavingScreen(idUser: widget.idUser)), // ไปหน้า SavingScreen
               );
             } else {
               isLoanSelected = true; // เลือก "เงินกู้"
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const LoanScreen()), // ไปหน้า LoanScreen
+                MaterialPageRoute(builder: (context) => LoanScreen(idUser: widget.idUser)), // ไปหน้า LoanScreen
               );
             }
           });

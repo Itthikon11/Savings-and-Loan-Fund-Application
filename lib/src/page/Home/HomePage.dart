@@ -2,12 +2,12 @@ import 'package:appproject/src/page/Cal/CalDividendPage.dart';
 import 'package:appproject/src/page/Data/PercenPage.dart';
 import 'package:appproject/src/page/Data/SlipPage.dart';
 import 'package:appproject/src/page/Data/LoanDocumentsPage.dart';
+import 'package:appproject/src/page/Loan/LoanPage.dart';
 import 'package:appproject/src/page/Profile/ProfilePage.dart';
 import 'package:appproject/src/page/Data_Loan/Data_Loan.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import '../Savings/SavingsPage.dart';
-import '../routes.dart';
 
 class HomePage extends StatefulWidget {
   final String idUser;
@@ -42,7 +42,12 @@ class _HomepageState extends State<HomePage> {
         ),
       );
     } else if (index == 2) {
-      Navigator.pushReplacementNamed(context, AppRoute.loan);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Loanpage(idUser: widget.idUser),
+        ),
+      );
     }
   }
 
@@ -73,7 +78,7 @@ class _HomepageState extends State<HomePage> {
                 else if (value == 3) {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => LoanScreen()),
+                    MaterialPageRoute(builder: (context) => LoanScreen(idUser: widget.idUser)),
                   );
                 }
                 else if (value == 4) {
@@ -117,7 +122,7 @@ class _HomepageState extends State<HomePage> {
               onTap: (){
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Profilepage()),
+                  MaterialPageRoute(builder: (context) => Profilepage(idUser: widget.idUser)),
                 );
               },
               child: Image.asset(

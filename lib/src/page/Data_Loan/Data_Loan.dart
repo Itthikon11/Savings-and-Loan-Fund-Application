@@ -3,7 +3,9 @@ import 'package:appproject/src/page/Data_Savings/Data_Savings.dart';
 import 'package:appproject/src/page/Home/HomePage.dart';
 
 class LoanScreen extends StatefulWidget {
-  const LoanScreen({Key? key}) : super(key: key);
+  final String idUser;
+
+  const LoanScreen({Key? key, required this.idUser}) : super(key: key);
 
   @override
   State<LoanScreen> createState() => _LoanScreenState();
@@ -133,8 +135,8 @@ class _LoanScreenState extends State<LoanScreen> {
                 _buildFooterButton('ย้อนกลับ', Colors.red, Icons.arrow_back, () {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomePage(idUser: '')),
-                        (route) => false, // ลบ stack หน้าเก่า
+                    MaterialPageRoute(builder: (context) => HomePage(idUser: widget.idUser)),
+                        (Route<dynamic> route) => false,
                   );
                 }),
                 _buildFooterButton('เพิ่มข้อมูล', Colors.green, Icons.add, () {
@@ -153,10 +155,10 @@ class _LoanScreenState extends State<LoanScreen> {
       child: GestureDetector(
         onTap: () {
           if (text == "เงินออม") {
-            // นำผู้ใช้ไปยังหน้า SavingScreen
-            Navigator.push(
+            Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const SavingScreen()),
+              MaterialPageRoute(builder: (context) => SavingScreen(idUser: widget.idUser)),
+                  (Route<dynamic> route) => false,
             );
           } else {
             // Toggle เงินกู้

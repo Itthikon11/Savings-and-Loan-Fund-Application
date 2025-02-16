@@ -4,6 +4,7 @@ import 'package:appproject/src/page/Data/PercenPage.dart';
 import 'package:appproject/src/page/Data/SlipPage.dart';
 import 'package:appproject/src/page/Data_Loan/Data_Loan.dart';
 import 'package:appproject/src/page/Deposit/DepositPage.dart';
+import 'package:appproject/src/page/Loan/LoanPage.dart';
 import 'package:appproject/src/page/Profile/ProfilePage.dart';
 import 'package:appproject/src/page/Savings/DetailsSaving.dart';
 import 'package:flutter/material.dart';
@@ -132,11 +133,11 @@ class _SavingspageState extends State<Savingspage> {
             (Route<dynamic> route) => false,
       );
     } else if (index == 2) {
-      /*Navigator.pushAndRemoveUntil(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => Loanpage(idUser: widget.idUser)),
             (Route<dynamic> route) => false,
-      );*/
+      );
     }
   }
 
@@ -167,7 +168,7 @@ class _SavingspageState extends State<Savingspage> {
                   else if (value == 3) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => LoanScreen()),
+                      MaterialPageRoute(builder: (context) => LoanScreen(idUser: widget.idUser)),
                     );
                   }
                   else if (value == 4) {
@@ -211,7 +212,7 @@ class _SavingspageState extends State<Savingspage> {
                 onTap: (){
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Profilepage()),
+                    MaterialPageRoute(builder: (context) => Profilepage(idUser: widget.idUser)),
                   );
                 },
                 child: Image.asset(
