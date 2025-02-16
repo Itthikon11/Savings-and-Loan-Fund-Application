@@ -1,5 +1,8 @@
 import 'package:appproject/src/page/Cal/CalDividendPage.dart';
+import 'package:appproject/src/page/Data/LoanDocumentsPage.dart';
 import 'package:appproject/src/page/Data/PercenPage.dart';
+import 'package:appproject/src/page/Data/SlipPage.dart';
+import 'package:appproject/src/page/Data_Loan/Data_Loan.dart';
 import 'package:appproject/src/page/Deposit/DepositPage.dart';
 import 'package:appproject/src/page/Profile/ProfilePage.dart';
 import 'package:appproject/src/page/Savings/DetailsSaving.dart';
@@ -142,31 +145,81 @@ class _SavingspageState extends State<Savingspage> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          children: [
-            PopupMenuButton<int>(
-              icon: Image.asset("assets/imgs/menu.png", height: 30),
-              onSelected: (value) {
-                if (value == 1) {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => Caldividendpage()));
-                } else if (value == 4) {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => Percenpage()));
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(value: 1, child: Text("คำนวณเงินปันผล")),
-                PopupMenuItem(value: 2, child: Text("รายละเอียดเงินกู้")),
-                PopupMenuItem(value: 3, child: Text("ข้อมูลสมาชิก")),
-                PopupMenuItem(value: 4, child: Text("เปอร์เซ็นแบ่งจ่าย")),
-              ],
-            ),
-            Spacer(),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => Profilepage()));
-              },
-              child: Image.asset("assets/imgs/user.png", height: 30),
-            ),
-          ],
+            children: [
+              PopupMenuButton<int>(
+                icon: Image.asset(
+                  "assets/imgs/menu.png",
+                  height: 30,
+                ),
+                onSelected: (value) {
+                  if (value == 1) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Caldividendpage()),
+                    );
+                  }
+                  else if (value == 2) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoanDocumentsPage()),
+                    );
+                  }
+                  else if (value == 3) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoanScreen()),
+                    );
+                  }
+                  else if (value == 4) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Percenpage()),
+                    );
+                  }
+                  else if (value == 5) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Slippage()),
+                    );
+                  }
+                },
+                itemBuilder: (context)=>[
+                  PopupMenuItem(
+                    value: 1,
+                    child: Text("คำนวณเงินปันผล"),
+                  ),
+                  PopupMenuItem(
+                    value: 2,
+                    child: Text("เอกสารเงินกู้"),
+                  ),
+                  PopupMenuItem(
+                    value: 3,
+                    child: Text("ข้อมูลสมาชิก"),
+                  ),
+                  PopupMenuItem(
+                    value: 4,
+                    child: Text("เปอร์เซ็นแบ่งจ่าย"),
+                  ),
+                  PopupMenuItem(
+                    value: 5,
+                    child: Text("สลิปเงินฝาก"),
+                  ),
+                ],
+              ),
+              SizedBox(width: 290),
+              GestureDetector(
+                onTap: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Profilepage()),
+                  );
+                },
+                child: Image.asset(
+                  "assets/imgs/user.png",
+                  height: 30,
+                ),
+              ),
+            ],
         ),
       ),
       body: Column(
